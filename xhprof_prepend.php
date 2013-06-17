@@ -70,4 +70,8 @@ EOH;
 
 session_write_close();
 
+# Be sure to reset the session name to the standard one,
+# else you could screw up some applications.
+session_name('PHPSESSID');
+
 ?>
