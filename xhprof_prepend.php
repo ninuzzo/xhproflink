@@ -15,6 +15,7 @@ http://web.archive.org/web/20110514095512/http://mirror.facebook.net/facebook/xh
 define('XHPROF_ROOT', '/usr/share/webapps/xhprof');
 define('XHPROF_DISPLAY', false);
 define('XHPROF_COOKIENAME', 'XHPROF_PROFILE');
+define('XHPROF_WEBPATH', '/xhprof/');
 
 # Rather than a session, since I only need to store one flag value, I am using a cookie.
 if (array_key_exists('profile', $_GET)) {
@@ -24,7 +25,9 @@ if (array_key_exists('profile', $_GET)) {
   setcookie(XHPROF_COOKIENAME, ''); # Delete the cookie
 }
 
-if (isset($_COOKIE[XHPROF_COOKIENAME]) && $_COOKIE[XHPROF_COOKIENAME]) {
+if (isset($_COOKIE[XHPROF_COOKIENAME]) && $_COOKIE[XHPROF_COOKIENAME]
+  # Exclude xprof pages from profiling!
+  && strncmp($_SERVER['SCRIPT_NAME'], XHPROF_WEBPATH, strlen(XHPROF_WEBPATH))) {
   # Start profiling.
   # Add XHPROF_FLAGS_NO_BUILTINS to not profile builtin functions.
   xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY,
