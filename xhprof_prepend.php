@@ -1,4 +1,8 @@
 <?php
+//----------------------------------------------
+// 20131023 irene: replaced session with cookie
+// ---------------------------------------------
+
 /*
 On-demand profiling using xhprof.
 This file should be loaded using auto_prepend
@@ -8,42 +12,48 @@ You need to install and set up xhprof, as described here:
 http://web.archive.org/web/20110514095512/http://mirror.facebook.net/facebook/xhprof/doc.html
 */
 
-# Do not use const for compatibility with old PHP versions.
+$allowed_addresses = array(
+			   "127.0.0.1",
+			   "213.61.228.26"
+			   );
 
-# Change this according to where your distribution places
-# xhprof's files, e.g. /usr/share/php52-xhprof/ in Ubuntu for old PHP5.2
-define('XHPROF_ROOT', '/usr/share/webapps/xhprof');
-define('XHPROF_DISPLAY', false);
-define('XHPROF_COOKIENAME', 'XHPROF_PROFILE');
-define('XHPROF_WEBPATH', '/xhprof/');
+if(in_array($_SERVER["REMOTE_ADDR"],$allowed_addresses)) {
 
-# Rather than a session, since I only need to store one flag value, I am using a cookie.
+  // Do not use const for compatibility with old PHP versions.
+
+  // Change this according to where your distribution places
+  // xhprof's files, e.g. /usr/share/php52-xhprof/ in Ubuntu for old PHP5.2
+  define('XHPROF_ROOT', '/usr/share/php52-xhprof');
+  define('XHPROF_DISPLAY', false);
+  
+
 if (array_key_exists('profile', $_GET)) {
-  setcookie(XHPROF_COOKIENAME, 1);
-  $_COOKIE[XHPROF_COOKIENAME] = 1; # Set the value of the cookie in this request already.
+  setcookie('ThisIsNotAsession','enabled');
 } elseif (array_key_exists('noprofile', $_GET)) {
-  setcookie(XHPROF_COOKIENAME, ''); # Delete the cookie
+  setcookie('ThisIsNotAsession','disabled');
 }
 
-if (isset($_COOKIE[XHPROF_COOKIENAME]) && $_COOKIE[XHPROF_COOKIENAME]
-  # Exclude xprof pages from profiling!
-  && strncmp($_SERVER['SCRIPT_NAME'], XHPROF_WEBPATH, strlen(XHPROF_WEBPATH))) {
-  # Start profiling.
-  # Add XHPROF_FLAGS_NO_BUILTINS to not profile builtin functions.
+if (!empty($_COOKIE['ThisIsNotAsession']) && $_COOKIE['ThisIsNotAsession'] == 'enabled'
+  // Exclude xprof pages from profiling!
+  && strncmp($_SERVER['SCRIPT_NAME'], '/xhprof/', strlen('/xhprof/'))) {
+
+
+  // Start profiling.
+  // Add XHPROF_FLAGS_NO_BUILTINS to not profile builtin functions.
   xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY,
     array('ignored_functions' => array('xhprof_disable')));
 
   function xhprof_prepend_finalize() {
-    # Stop profiler.
+    // Stop profiler.
     $xhprof_data = xhprof_disable();
   
     if (XHPROF_DISPLAY) {
-      # Display raw xhprof data for the profiler run.
+      // Display raw xhprof data for the profiler run.
       echo '<pre>';
       var_export($xhprof_data);
       echo '</pre>';
     } else {
-      # Saving the XHProf run using the default implementation of iXHProfRuns.
+      // Saving the XHProf run using the default implementation of iXHProfRuns.
       include_once XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php';
       include_once XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php';
   
@@ -58,7 +68,7 @@ if (isset($_COOKIE[XHPROF_COOKIENAME]) && $_COOKIE[XHPROF_COOKIENAME]
       By default save_run() will automatically generate a unique
       run id for you. [You can override that behavior by passing
       a run id (optional arg) to the save_run() method instead.]
-      */
+  */
       $run_id = $xhprof_runs->save_run($xhprof_data, $namespace);
   
       echo <<<EOH
@@ -67,11 +77,9 @@ if (isset($_COOKIE[XHPROF_COOKIENAME]) && $_COOKIE[XHPROF_COOKIENAME]
 EOH;
     }
   }
-  # BUG: other shutdown functions registered after this won't be profiled.
+  // BUG: other shutdown functions registered after this won't be profiled.
   register_shutdown_function('xhprof_prepend_finalize');
 }
-
-# Unset the cookie in this request,
-# because some applications may not like it to be present.
-unset($_COOKIE[XHPROF_COOKIENAME]);
+ 
+}
 ?>
