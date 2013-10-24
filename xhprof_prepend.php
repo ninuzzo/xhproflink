@@ -70,12 +70,28 @@ if (!empty($_COOKIE['ThisIsNotAsession']) && $_COOKIE['ThisIsNotAsession'] == 'e
       a run id (optional arg) to the save_run() method instead.]
   */
       $run_id = $xhprof_runs->save_run($xhprof_data, $namespace);
-  
+      $profile_url = "http://" . $_SERVER['SERVER_NAME'] . "/xhprof/index.php?run=" . $run_id . "&source=" . $namespace;
+
       echo <<<EOH
 <hr>
-<a href="http://$_SERVER[SERVER_NAME]/xhprof/index.php?run=$run_id&source=$namespace" target="xhprof">View run #$run_id under namespace $namespace.</a>
+<style>
+    #xhprof-link {
+       position: absolute; 
+       top:10px;left:30px;
+       display:block;
+       font-size:14px;
+       font-weight:bold;
+       color:#f00;
+       border: 1px solid #666;
+       background-color: #fff;
+       padding:7px 15px;
+}
+</style>
+	<a id="xhprof-link" href="$profile_url" target="xhprof">View profiler report for this page (id $run_id) </a>
 EOH;
+      //View run $run_id under namespace $namespace
     }
+
   }
   // BUG: other shutdown functions registered after this won't be profiled.
   register_shutdown_function('xhprof_prepend_finalize');
