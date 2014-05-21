@@ -15,7 +15,7 @@ $allowed_addresses = array(
 			   "213.61.228.26"
 			   );
 
-if(in_array($_SERVER["REMOTE_ADDR"], $allowed_addresses)) {
+if(in_array($_SERVER["REMOTE_ADDR"], $allowed_addresses) && php_sapi_name() != 'cli') {
 
   // Do not use const for compatibility with old PHP versions.
 
@@ -27,8 +27,10 @@ if(in_array($_SERVER["REMOTE_ADDR"], $allowed_addresses)) {
 
   if (array_key_exists('profile', $_GET)) {
     setcookie('ThisIsNotAsession','enabled');
+    $_COOKIE['ThisIsNotAsession'] = 'enabled';
   } elseif (array_key_exists('noprofile', $_GET)) {
     setcookie('ThisIsNotAsession','disabled');
+    $_COOKIE['ThisIsNotAsession'] = 'disabled';
   }
 
   if (!empty($_COOKIE['ThisIsNotAsession']) && $_COOKIE['ThisIsNotAsession'] == 'enabled'
