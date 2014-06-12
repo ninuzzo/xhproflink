@@ -12,7 +12,7 @@
 
 $allowed_addresses = array(
 			   "127.0.0.1",
-			   "213.61.228.26"
+			   "213.61.228.26",
 			   "213.61.153.91"
 			   );
 // disabled in cli-mode
